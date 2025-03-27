@@ -33,6 +33,7 @@ struct hash_elem
    auxiliary data AUX. */
 typedef unsigned hash_hash_func (const struct hash_elem *e, void *aux);
 
+unsigned hash_func (const struct hash_elem *e, void *aux);
 /* Compares the value of two hash elements A and B, given
    auxiliary data AUX.  Returns true if A is less than B, or
    false if A is greater than or equal to B. */
@@ -107,13 +108,5 @@ bool less_hash(struct hash_elem *a, struct hash_elem *b, void *aux);
 unsigned hash_int_2(int i);
 struct hash_elem* create_hash_elem(int data);
 
-#define hash_entry(HASH_ELEM, STRUCT, MEMBER)                   \
-        ((STRUCT *) ((uint8_t *) &(HASH_ELEM)->list_elem        \
-                     - offsetof (STRUCT, MEMBER.list_elem)))
-
-struct hash_item {
-	struct hash_elem elem;
-	int data;
-};
 
 #endif /* hash.h */

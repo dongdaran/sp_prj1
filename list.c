@@ -552,6 +552,23 @@ bool list_less(const struct list_elem *a, const struct list_elem *b, void *aux)
   return false;
 }
 
+void list_delete(struct list* list)
+{   
+    struct list_elem *e = list_begin(list);  // 리스트의 첫 번째 요소부터 순차적으로 제거
+    while (e != list_end(list))  // 리스트 끝까지 반복
+    {
+        struct list_elem *next_elem = list_next(e);  // 다음 요소를 미리 저장
+        if (is_interior(e))  // 내부 요소만 삭제
+        {
+            struct list_item *item = list_entry(e, struct list_item, elem);
+            free(item);  // 메모리 해제
+        }
+        e = next_elem;  // 다음 요소로 이동
+    }
+}
+
+
+
 void 
 list_swap(struct list_elem *a, struct list_elem *b)
 {
@@ -644,21 +661,12 @@ struct list * list_create(){
   return NULL;
 }
 
-void list_delete(struct list* list)
-{   
-    for (struct list_elem *e = list_begin(list); e != list_end (list); e = list_remove (e))
-     {
-        struct list_item *item = list_entry(e, struct list_item, elem);
-        free(item);
-     }
 
-}
 
 void list_dumpdata(struct list* list)
 {   
 
     if (list_empty(list)) {
-        printf("List is empty\n");
         return;
     }
 
