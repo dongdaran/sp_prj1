@@ -48,8 +48,8 @@ int main()
             else if(strcmp(token, "hashtable")==0)
             {
                 struct hash * tmp = create_hash();
-
                 token = strtok(NULL, " ");
+
                 if(hash_names==NULL)
                     hash_names = (struct list_name *)malloc(sizeof(struct list_name)*100);
                 
@@ -149,11 +149,11 @@ int main()
             }
 
             /*hashtable_dumpdata*/
-            else if(strcmp(token, "hashtable")==0)
+            else if(hash_names!=NULL)
             {
-                char *name = (char*)malloc(sizeof(strlen(token))+1);
+                char *name = (char*)malloc(strlen(token) + 1);
                 strcpy(name,token);
-                printf("%s", token);
+                printf("%s\n", token);
                 
 
                 for(int i=0; i < counts; i++)
@@ -166,7 +166,7 @@ int main()
                     } 
             }
 
-            /*bitmpa_dumpdata*/
+            /*bitmap_dumpdata*/
             else if(bitmap_names!=NULL)
             {
                 char *name = (char*)malloc(sizeof(strlen(token))+1);
@@ -1036,13 +1036,13 @@ int main()
 
                 struct hash_elem *e = create_hash_elem(input_data);
 
-                printf("%s %d\n", name,e->data);
+                printf("%s %d %d\n", name, list_entry(&e->list_elem,struct list_item, elem)->data, input_data);
 
                 for(int i=0; i < counts; i++)
-                    {
+                    {   
                         if(strcmp(name, hash_names[i].name)==0)
                         {
-                            hash_insert (hash_names[i].hash , e);
+                            hash_insert(hash_names[i].hash , e);
                             break;
                         }
                     } 

@@ -107,4 +107,13 @@ bool less_hash(struct hash_elem *a, struct hash_elem *b, void *aux);
 unsigned hash_int_2(int i);
 struct hash_elem* create_hash_elem(int data);
 
+#define hash_entry(HASH_ELEM, STRUCT, MEMBER)                   \
+        ((STRUCT *) ((uint8_t *) &(HASH_ELEM)->list_elem        \
+                     - offsetof (STRUCT, MEMBER.list_elem)))
+
+struct hash_item {
+	struct hash_elem elem;
+	int data;
+};
+
 #endif /* hash.h */
