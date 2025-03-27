@@ -441,19 +441,7 @@ void dump_hash(struct hash* h)
   if (hash_empty(h)) 
     return;
   
-  struct hash_iterator iter;
-  hash_first(&iter, h);
-
-  while (hash_next(&iter)) {
-    struct hash_elem *e = hash_cur(&iter);
-    
-    // Convert hash_elem to hash_item
-    struct hash_item *item = hash_entry(e, struct hash_item, elem);
-    
-    // Print the data field from hash_item
-    printf("%d ", item->data);
-  }
-  
+  hash_apply(h, print_hash_elem);
   printf("\n");
 }
 
@@ -504,9 +492,12 @@ unsigned hash_int_2(int i)
 
 
 struct hash_elem* create_hash_elem(int data) {
-  struct hash_item* new_item = (struct hash_item*) malloc(sizeof(struct hash_item));
-  new_item->data = data;
-  
-  // return the element part of the hash_item, so it's treated as a hash_elem
-  return &new_item->elem;
+  struct list_item *l_item = (struct list_item *)malloc(sizeof(struct list_item));
+  l_item->data = data;
+
+  struct list_elem *e = (struct list_elem *)malloc(sizeof(struct list_elem));
+  e = &l_item->elem;
+
+  return list_elem_to_hash_elem(e);
+
 }
