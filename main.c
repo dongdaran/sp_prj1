@@ -48,8 +48,8 @@ int main()
             else if(strcmp(token, "hashtable")==0)
             {
                 struct hash * tmp = create_hash();
-
                 token = strtok(NULL, " ");
+
                 if(hash_names==NULL)
                     hash_names = (struct list_name *)malloc(sizeof(struct list_name)*100);
                 
@@ -149,16 +149,12 @@ int main()
             }
 
             /*hashtable_dumpdata*/
-            else if(strcmp(token, "hashtable")==0)
+            else if(hash_names!=NULL)
             {
-                char *name = (char*)malloc(sizeof(strlen(token))+1);
-                strcpy(name,token);
-                printf("%s", token);
-                
 
                 for(int i=0; i < counts; i++)
                     {
-                        if(strcmp(name, hash_names[i].name)==0)
+                        if(strcmp(token, hash_names[i].name)==0)
                         {
                             dump_hash(hash_names[i].hash);
                             break;
@@ -166,7 +162,7 @@ int main()
                     } 
             }
 
-            /*bitmpa_dumpdata*/
+            /*bitmap_dumpdata*/
             else if(bitmap_names!=NULL)
             {
                 char *name = (char*)malloc(sizeof(strlen(token))+1);
@@ -286,7 +282,6 @@ int main()
                     }
                 }
             }
-
 
             else if(strcmp(token, "list_back")==0){
                 /*이름 불러오기*/
@@ -578,25 +573,47 @@ int main()
             }
 
             else if(strcmp(token, "list_unique")==0){
-                /*이름 불러오기*/
-                token = strtok(NULL, " ");
-                char * name = (char*)malloc(sizeof(strlen(token))+1);
-                strcpy(name,token);
+            token = strtok(NULL, " ");
+    char *target_name = strdup(token);
 
-                struct list * tmp = list_create();
-                token = strtok(NULL, " ");
-                if(list_names==NULL)
-                    list_names = (struct list_name *)malloc(sizeof(struct list_name)*100);
-                
-                list_names[counts].name = strdup(token);
-                list_names[counts].list = tmp;
-                counts++;
+    /* duplicates 리스트 이름 추출 (있을 경우) */
+    char *dup_name = NULL;
+    token = strtok(NULL, " ");
+    if (token != NULL) {
+        dup_name = strdup(token);
+    }
 
-                for(int i=0; i < counts; i++)
-                {
-                    if(strcmp(name, list_names[i].name)==0)
-                        list_unique(list_names[i].list,tmp,list_less,"ascending");
-                }
+    struct list *target_list = NULL;
+    struct list *dup_list = NULL;
+
+    /* 대상 리스트 찾기 */
+    for (int i = 0; i < counts; i++) {
+        if (strcmp(target_name, list_names[i].name) == 0) {
+            target_list = list_names[i].list;
+            break;
+        }
+    }
+
+    /* duplicates 리스트 찾기 */
+    if (dup_name != NULL) {
+        for (int i = 0; i < counts; i++) {
+            if (strcmp(dup_name, list_names[i].name) == 0) {
+                dup_list = list_names[i].list;
+                break;
+            }
+        }
+    }
+
+    /* list_unique 함수 호출 */
+    if (target_list != NULL) {
+        list_unique(target_list, dup_list, list_less, "ascending");
+    }
+
+    /* 메모리 해제 */
+    free(target_name);
+    if (dup_name != NULL) {
+        free(dup_name);
+    }
             }
             /*---------------listend---------------*/
 
@@ -837,7 +854,7 @@ int main()
 
             else if(strcmp(token, "bitmap_scan_and_flip")==0)
             {   
-                int idx;
+                size_t idx;
                 bool tf_input;
 
                 token = strtok(NULL, " ");
@@ -861,7 +878,7 @@ int main()
                         if(strcmp(name, bitmap_names[i].name)==0)
                         {
                             idx = bitmap_scan_and_flip(bitmap_names[i].bitmap, start, cnt, tf_input);
-                            printf("%d\n", idx);
+                            printf("%zu\n", idx);
                             break;
                         }         
                     } 
@@ -869,7 +886,7 @@ int main()
 
             else if(strcmp(token, "bitmap_scan")==0)
             {   
-                int idx;
+                size_t idx;
                 bool tf_input;
 
                 token = strtok(NULL, " ");
@@ -893,7 +910,7 @@ int main()
                         if(strcmp(name, bitmap_names[i].name)==0)
                         {
                             idx = bitmap_scan(bitmap_names[i].bitmap, start, cnt, tf_input);
-                            printf("%d\n", idx);
+                            printf("%zu\n", idx);
                             break;
                         }         
                     } 
@@ -1036,18 +1053,168 @@ int main()
 
                 struct hash_elem *e = create_hash_elem(input_data);
 
-                printf("%s %d\n", name,e->data);
-
                 for(int i=0; i < counts; i++)
-                    {
+                    {   
                         if(strcmp(name, hash_names[i].name)==0)
                         {
-                            hash_insert (hash_names[i].hash , e);
+                            hash_insert(hash_names[i].hash , e);
                             break;
                         }
                     } 
             }
-        
+
+            else if(strcmp(token, "hash_apply")==0)
+            {
+                token = strtok(NULL, " ");
+                char *name = (char*)malloc(sizeof(strlen(token))+1);
+                strcpy(name,token);
+                
+                token = strtok(NULL, " ");
+
+
+                for(int i=0; i < counts; i++)
+                    {   
+                        if(strcmp(name, hash_names[i].name)==0)
+                        {   
+                            if(!strcmp(token, "square"))
+                            {
+                                hash_apply(hash_names[i].hash, square_hash_elem);
+                                break;
+                            }
+
+                            else if(!strcmp(token, "triple"))
+                            {
+                                hash_apply(hash_names[i].hash, triple_hash_elem);
+                                break;
+                            }
+                        }
+                    } 
+            }
+
+            else if(strcmp(token, "hash_empty")==0)
+            {
+                bool tf;
+                token = strtok(NULL, " ");
+                char *name = (char*)malloc(sizeof(strlen(token))+1);
+                strcpy(name,token);
+                
+                for(int i=0; i < counts; i++)
+                    {   
+                        if(strcmp(name, hash_names[i].name)==0)
+                        {
+                            tf = hash_empty(hash_names[i].hash);
+                            printf(tf? "true\n":"false\n");
+                            break;
+                        }
+                    } 
+            }
+
+            else if(strcmp(token, "hash_size")==0)
+            {
+                size_t size;
+                token = strtok(NULL, " ");
+                char *name = (char*)malloc(sizeof(strlen(token))+1);
+                strcpy(name,token);
+                
+                for(int i=0; i < counts; i++)
+                    {   
+                        if(strcmp(name, hash_names[i].name)==0)
+                        {
+                            size = hash_size(hash_names[i].hash);
+                            printf("%zu\n", size);
+                            break;
+                        }
+                    } 
+            }
+
+            else if(strcmp(token, "hash_clear")==0)
+            {
+                size_t size;
+                token = strtok(NULL, " ");
+                char *name = (char*)malloc(sizeof(strlen(token))+1);
+                strcpy(name,token);
+                
+                for(int i=0; i < counts; i++)
+                    {   
+                        if(strcmp(name, hash_names[i].name)==0)
+                        {
+                            hash_clear(hash_names[i].hash, remove_hash_elem);
+                            break;
+                        }
+                    } 
+            }
+
+            else if(strcmp(token, "hash_find")==0)
+            {
+                struct hash_elem * found;
+                token = strtok(NULL, " ");
+                char *name = (char*)malloc(sizeof(strlen(token))+1);
+                strcpy(name,token);
+
+                token = strtok(NULL, " ");
+                int input_data = atoi(token);
+
+                struct hash_elem * input = create_hash_elem(input_data);
+                
+                for(int i=0; i < counts; i++)
+                    {   
+                        if(strcmp(name, hash_names[i].name)==0)
+                        {   
+
+                            found = hash_find(hash_names[i].hash, input);
+
+                            if(found == NULL)
+                                break;
+                            
+                            printf("%d\n", list_entry(&found->list_elem, struct list_item, elem)->data);
+
+                        }
+                    } 
+            }
+
+            else if(strcmp(token, "hash_replace")==0)
+            {
+                struct hash_elem * re;
+                token = strtok(NULL, " ");
+                char *name = (char*)malloc(sizeof(strlen(token))+1);
+                strcpy(name,token);
+
+                token = strtok(NULL, " ");
+                int input_data = atoi(token);
+
+                struct hash_elem * input = create_hash_elem(input_data);
+                
+                for(int i=0; i < counts; i++)
+                    {   
+                        if(strcmp(name, hash_names[i].name)==0)
+                        {   
+                            hash_replace(hash_names[i].hash, input);
+                            break;
+                        }
+                    } 
+            }
+
+            else if(strcmp(token, "hash_delete")==0)
+            {
+                token = strtok(NULL, " ");
+                char *name = (char*)malloc(sizeof(strlen(token))+1);
+                strcpy(name,token);
+                
+                token = strtok(NULL, " ");
+                int input_data = atoi(token);
+
+                struct hash_elem *e = create_hash_elem(input_data);
+
+                for(int i=0; i < counts; i++)
+                    {   
+                        if(strcmp(name, hash_names[i].name)==0)
+                        {
+                            hash_delete(hash_names[i].hash , e);
+                            break;
+                        }
+                    } 
+            }
+            
         }
 
     }   

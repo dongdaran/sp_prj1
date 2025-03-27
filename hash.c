@@ -430,25 +430,25 @@ remove_elem (struct hash *h, struct hash_elem *e)
 /*20231523*/
 struct hash* create_hash()
 {
-  struct hash *h = (struct hash*)calloc(1,sizeof(struct hash));
-  hash_init(h, hash_int, less_hash, "ascending");
+  struct hash *h = (struct hash*)malloc(sizeof(struct hash));
+  hash_init(h, hash_func, less_hash, "ascending");
   return h;
-
 }
 
 void dump_hash(struct hash* h)
 {
-  if(!hash_size(h))
+  if (hash_empty(h)) 
     return;
   
   hash_apply(h, print_hash_elem);
   printf("\n");
-
 }
 
 void print_hash_elem(struct hash_elem* e, void* aux)
 {
-  printf("%d ",e->data);
+  struct list_elem * l = &e->list_elem;
+  struct list_item *l_item = list_entry(l, struct list_item, elem);
+  printf("%d ",l_item->data);
 }
 
 void remove_hash_elem(struct hash_elem* e, void* aux)
@@ -468,20 +468,28 @@ void apply_calculate(struct hash* h, char* command){
 }
 
 void square_hash_elem(struct hash_elem* e, void* aux){
-  e->data = e->data*e->data;
+  struct list_item *e_item = list_entry(&e->list_elem, struct list_item, elem);
+  e_item->data = e_item->data*e_item->data;
 }
 
 void triple_hash_elem(struct hash_elem* e, void* aux){
-  e->data = e->data*e->data*e->data;
+  struct list_item *e_item = list_entry(&e->list_elem, struct list_item, elem);
+  e_item->data = e_item->data*e_item->data*e_item->data;
 }
 
-bool less_hash(struct hash_elem *a, struct hash_elem *b, void *aux)
+bool less_hash(struct hash_elem *a, struct hash_elem *b, void *aux) 
 { 
-  if(!strcmp(aux, "ascedning"))
-    return a->data < b->data;
-  
-  else if(!strcmp(aux, "descedning"))
-    return a->data > b->data;
+    // Access the list_item through the list_elem of hash_elem
+    struct list_item *a_item = list_entry(&a->list_elem, struct list_item, elem);
+    struct list_item *b_item = list_entry(&b->list_elem, struct list_item, elem);
+
+    if (!strcmp(aux, "ascending"))
+        return a_item->data < b_item->data;
+    
+    else if (!strcmp(aux, "descending"))
+        return a_item->data > b_item->data;
+
+    return false; // Default case
 }
 
 unsigned hash_int_2(int i)
@@ -490,8 +498,18 @@ unsigned hash_int_2(int i)
 }
 
 
-struct hash_elem* create_hash_elem(int data){
-  struct hash_elem* new = (struct hash_elem*)calloc(1,sizeof(struct hash_elem));
-  new->data = data;
-  return new;
+struct hash_elem* create_hash_elem(int data) {
+  struct list_item *l_item = (struct list_item *)malloc(sizeof(struct list_item));
+  l_item->data = data;
+
+  struct list_elem *e = (struct list_elem *)malloc(sizeof(struct list_elem));
+  e = &l_item->elem;
+
+  return list_elem_to_hash_elem(e);
+
+}
+
+unsigned hash_func (const struct hash_elem *e, void *aux){
+  struct list_item *i_item = list_entry(&e->list_elem, struct list_item, elem);
+  return hash_int(i_item->data);
 }
